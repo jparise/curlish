@@ -553,20 +553,25 @@ def print_formatted_json(json_data, jsonp_func=None):
 
 def beautify_curl_output(iterable, hide_headers, hide_jsonp=False):
     """Parses curl output and adds colors and reindents as necessary."""
+    continuing = False
     json_body = False
     might_be_javascript = False
     has_colors = is_color_terminal()
 
     # Headers
     for line in iterable:
-        if has_colors and re.search(r'^HTTP/', line):
-            if re.search('HTTP/\d+.\d+ [45]\d+', line):
-                color = get_color('statusline_error')
-            else:
-                color = get_color('statusline_ok')
-            if not hide_headers:
+        if re.search(r'^HTTP/', line):
+            if re.search('HTTP/\d+.\d+ 100', line):
+                continuing = True
+            elif continuing:
+                continuing = False
+            if has_colors and not hide_headers:
+                if re.search('HTTP/\d+.\d+ [45]\d+', line):
+                    color = get_color('statusline_error')
+                else:
+                    color = get_color('statusline_ok')
                 sys.stdout.write(color + line + ANSI_CODES['reset'])
-            continue
+                continue
         if re.search(r'^Content-Type:\s*(text/javascript|application/(.+?\+)?json)\s*(?i)', line):
             json_body = True
             if 'javascript' in line:
@@ -583,7 +588,7 @@ def beautify_curl_output(iterable, hide_headers, hide_jsonp=False):
             else:
                 sys.stdout.write(line)
             sys.stdout.flush()
-        if line == '\r\n':
+        if line == '\r\n' and not continuing:
             break
 
     # JSON Body.  Do not reindent if we have headers and are piping
