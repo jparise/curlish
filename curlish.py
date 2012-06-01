@@ -561,12 +561,12 @@ def beautify_curl_output(iterable, hide_headers, hide_jsonp=False):
     # Headers
     for line in iterable:
         if re.search(r'^HTTP/', line):
-            if re.search('HTTP/\d+.\d+ 100', line):
+            if re.search('HTTP/\d+.\d+\s+100', line):
                 continuing = True
             elif continuing:
                 continuing = False
             if has_colors and not hide_headers:
-                if re.search('HTTP/\d+.\d+ [45]\d+', line):
+                if re.search('HTTP/\d+.\d+\s+[45]\d+', line):
                     color = get_color('statusline_error')
                 else:
                     color = get_color('statusline_ok')
